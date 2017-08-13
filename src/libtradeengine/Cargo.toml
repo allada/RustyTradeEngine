@@ -1,0 +1,13 @@
+[package]
+name = "libtradeengine"
+version = "0.1.0"
+authors = ["Nathan Bruer <thegreatall@gmail.com>"]
+publish = false
+
+[lib]
+name = "tradeengine"
+path = "lib.rs"
+crate-type = ["rlib"]
+
+[dependencies]
+
