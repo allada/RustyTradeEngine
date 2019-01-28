@@ -1,0 +1,56 @@
+
+syntax = "proto3";
+
+package common;
+
+enum SideT {  // Next number: 3
+  BUY = 1,
+  SELL = 2,
+}
+
+enum OrderTypeT {  // Next number: 4
+  // Order executes now and never is put on ledger.
+  MARKET = 1;
+
+  // Order executes now until ledger's price is met then
+  // gets put on ledger.
+  LIMIT = 2;
+
+  // Order is only put on ledger and will be rejected if
+  // any part is executed now.
+  LIMIT_MAKER = 3;
+}
+
+message Order {  // Next number: 6
+  uint64 id = 1;
+  uint64 price = 2;
+  uint64 qty = 3;
+  SideT side = 4;
+  OrderTypeT order_type = 5;
+}
+
+message Trade {  // Next number: 3
+  Order taker = 1;
+  Order maker = 2;
+}
+
+// External actions
+
+message AddOrder {  // Next number: 3
+  Order currency_pair = 1;
+
+  // Note: id must not be set here
+  Order order = 2;
+}
+
+// TODO(nathan.bruer) Implement me
+// message RemoveOrder {  // Next number: 2
+//   uint64 id = 1;
+// }
+
+message Actions {  // Next number: 3
+  oneof action_oneof {
+    AddOrder add_order = 1;
+    // RemoveOrder remove_order = 2;
+  }
+}

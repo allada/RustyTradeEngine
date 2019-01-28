@@ -37,13 +37,13 @@ impl MatcherThread {
                         .err();
                     orders_received += 1;
                     if orders_received % 10000 == 0 {
-                        println!("At: {}", orders_received);
+                        println!("{}: At: {}", self.currency_pair, orders_received);
                     }
                 }
                 MatcherThreadMessage::Exit => break,
             }
         }
-        println!("Orders Received {}", orders_received);
+        println!("{}: Orders Received {}", self.currency_pair, orders_received);
     }
 
     fn handle_add_order(&mut self, order: Order) {
