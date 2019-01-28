@@ -68,7 +68,7 @@ mod ledger {
 
   #[test]
   fn simple_add_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_order = DummyOrder::new(1234567890, 999, 111, SideT::BUY, OrderTypeT::LIMIT);
     {
       let trades = ledger.add_order(dummy_order.to_order());
@@ -87,7 +87,7 @@ mod ledger {
 
   #[test]
   fn simple_full_trade() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_buy = DummyOrder::new(1234567890, 10, 8, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_sell = DummyOrder::new(987654321, 10, 8, SideT::SELL, OrderTypeT::LIMIT);
     {
@@ -105,7 +105,7 @@ mod ledger {
 
   #[test]
   fn market_order_fails_if_empty() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_buy = DummyOrder::new(1234567890, 10, 8, SideT::BUY, OrderTypeT::MARKET);
     let dummy_sell = DummyOrder::new(987654321, 10, 8, SideT::BUY, OrderTypeT::MARKET);
     {
@@ -122,7 +122,7 @@ mod ledger {
 
   #[test]
   fn buy_limits_inserted_backwards_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_buy1 = DummyOrder::new(99, 14, 1, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy2 = DummyOrder::new(88, 13, 2, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy3 = DummyOrder::new(77, 12, 3, SideT::BUY, OrderTypeT::LIMIT);
@@ -148,7 +148,7 @@ mod ledger {
 
   #[test]
   fn buy_limits_inserted_forwards_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_buy1 = DummyOrder::new(99, 14, 1, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy2 = DummyOrder::new(88, 13, 2, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy3 = DummyOrder::new(77, 12, 3, SideT::BUY, OrderTypeT::LIMIT);
@@ -175,7 +175,7 @@ mod ledger {
 
   #[test]
   fn buy_limits_inserted_random_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_buy1 = DummyOrder::new(99, 14, 1, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy2 = DummyOrder::new(88, 13, 2, SideT::BUY, OrderTypeT::LIMIT);
     let dummy_buy3 = DummyOrder::new(77, 12, 3, SideT::BUY, OrderTypeT::LIMIT);
@@ -202,7 +202,7 @@ mod ledger {
 
   #[test]
   fn sell_limits_inserted_backwards_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_sell1 = DummyOrder::new(99, 14, 1, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell2 = DummyOrder::new(88, 13, 2, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell3 = DummyOrder::new(77, 12, 3, SideT::SELL, OrderTypeT::LIMIT);
@@ -228,7 +228,7 @@ mod ledger {
 
   #[test]
   fn sell_limits_inserted_forwards_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_sell1 = DummyOrder::new(99, 14, 1, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell2 = DummyOrder::new(88, 13, 2, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell3 = DummyOrder::new(77, 12, 3, SideT::SELL, OrderTypeT::LIMIT);
@@ -255,7 +255,7 @@ mod ledger {
 
   #[test]
   fn sell_limits_inserted_random_traded_in_order() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_sell1 = DummyOrder::new(99, 14, 1, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell2 = DummyOrder::new(88, 13, 2, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell3 = DummyOrder::new(77, 12, 3, SideT::SELL, OrderTypeT::LIMIT);
@@ -282,7 +282,7 @@ mod ledger {
 
   #[test]
   fn buy_limit_consumes_and_goes_onto_ledger_then_consumed_by_market() {
-    let mut ledger = Ledger::new();
+    let mut ledger = Ledger::default();
     let dummy_sell1 = DummyOrder::new(99, 14, 1, SideT::SELL, OrderTypeT::LIMIT);
     let dummy_sell2 = DummyOrder::new(88, 17, 1, SideT::SELL, OrderTypeT::LIMIT);
 

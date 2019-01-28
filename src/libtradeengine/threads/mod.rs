@@ -1,10 +1,10 @@
 use engine::Order;
 use engine::types::*;
 
-pub mod ui;
+pub mod matcher;
 pub mod io;
 
-pub enum UiThreadMessage {
+pub enum MatcherThreadMessage {
   AddOrder(Order),
   Exit,
 }

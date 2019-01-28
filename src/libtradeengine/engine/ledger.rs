@@ -8,13 +8,6 @@ use super::Order;
 use super::Trade;
 
 impl Ledger {
-  pub fn new() -> Ledger {
-    Ledger {
-      buy_ledger: BinaryHeap::new(),
-      sell_ledger: BinaryHeap::new(),
-    }
-  }
-
   fn stash_order(&mut self, order: Order) {
     debug_assert!(*order.order_type() != OrderTypeT::MARKET);
     if *order.side() == SideT::BUY {
@@ -36,7 +29,7 @@ impl Ledger {
         return Some(PeekMut::pop(peek));
       }
     }
-    return None;
+    None
   }
 
   pub fn add_order(&mut self, order: Order) -> Vec<Trade> {
@@ -80,6 +73,7 @@ impl Ledger {
   }
 }
 
+#[derive(Default)]
 pub struct Ledger {
   buy_ledger: BinaryHeap<Order>,
   sell_ledger: BinaryHeap<Order>,

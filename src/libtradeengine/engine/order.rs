@@ -5,11 +5,11 @@ use super::types::*;
 impl Order {
   pub fn new(id: OrderIdT, price: PriceT, qty: QtyT, side: SideT, order_type: OrderTypeT) -> Order {
     Order {
-      id: id,
-      price: price,
-      qty: qty,
-      side: side,
-      order_type: order_type,
+      id,
+      price,
+      qty,
+      side,
+      order_type,
     }
   }
 
@@ -17,7 +17,7 @@ impl Order {
     Order {
       id: other.id,
       price: other.price,
-      qty: qty,
+      qty,
       side: other.side,
       order_type: other.order_type,
     }

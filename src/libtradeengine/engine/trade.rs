@@ -15,8 +15,8 @@ impl Trade {
     };
 
     (Trade {
-      taker: taker,
-      maker: maker,
+      taker,
+      maker,
     }, new_order)
   }
 

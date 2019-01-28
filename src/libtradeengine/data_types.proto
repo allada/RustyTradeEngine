@@ -1,0 +1,27 @@
+
+enum SideT {
+  // Next: 3
+  BUY = 1,
+  SELL = 2,
+}
+
+enum OrderTypeT {
+  // Next 3
+  MARKET = 1;
+  LIMIT = 2;
+}
+
+message Order {
+  // Next: 6
+  uint64 id = 1;
+  uint64 price = 2;
+  uint64 qty = 3;
+  SideT side = 4;
+  OrderTypeT order_type = 5;
+}
+
+message Trade {
+  // Next: 3
+  Order taker = 1;
+  Order maker = 2;
+}

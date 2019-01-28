@@ -5,25 +5,24 @@ use engine::Order;
 use engine::Ledger;
 use super::*;
 
-pub fn start(tx: Sender<IoThreadMessage>, rx: Receiver<UiThreadMessage>) {
-  UiThread::new(tx).run(rx);
-  println!("UI thread exited.");
+pub fn start(tx: Sender<IoThreadMessage>, rx: Receiver<MatcherThreadMessage>) {
+  MatcherThread::new(tx).run(rx);
+  println!("Matcher thread exited.");
 }
 
-impl UiThread {
-  pub fn new(tx: Sender<IoThreadMessage>) -> UiThread {
-    UiThread{
+impl MatcherThread {
+  pub fn new(tx: Sender<IoThreadMessage>) -> MatcherThread {
+    MatcherThread{
       tx_to_io: tx,
-      ledger: Ledger::new(),
+      ledger: Ledger::default(),
     }
   }
 
-  pub fn run(&mut self, rx: Receiver<UiThreadMessage>) {
-    let mut it = rx.iter();
+  pub fn run(&mut self, rx: Receiver<MatcherThreadMessage>) {
     let mut orders_received = 0;
-    while let Some(task_data) = it.next() {
+    for task_data in rx.iter() {
       match task_data {
-        UiThreadMessage::AddOrder(order) => {
+        MatcherThreadMessage::AddOrder(order) => {
           let order_id = *order.id();
           self.handle_add_order(order);
           self.tx_to_io.send(IoThreadMessage::AddOrderAck(order_id)).err();
@@ -32,7 +31,7 @@ impl UiThread {
             println!("At: {}", orders_received);
           }
         },
-        UiThreadMessage::Exit => break,
+        MatcherThreadMessage::Exit => break,
       }
     }
     println!("Orders Received {}", orders_received);
@@ -43,7 +42,7 @@ impl UiThread {
   }
 }
 
-struct UiThread {
+struct MatcherThread {
   tx_to_io: Sender<IoThreadMessage>,
   ledger: Ledger,
 }

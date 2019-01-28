@@ -10,4 +10,4 @@ path = "lib.rs"
 crate-type = ["rlib"]
 
 [dependencies]
-
+quick-protobuf = "0.6.3"

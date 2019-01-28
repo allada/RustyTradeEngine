@@ -1,27 +1,24 @@
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-use engine::Order;
-
 use super::*;
 
-pub fn start(tx: Sender<UiThreadMessage>, rx: Receiver<IoThreadMessage>) {
+pub fn start(tx: Sender<MatcherThreadMessage>, rx: Receiver<IoThreadMessage>) {
   IoThread::new(tx).run(rx);
   println!("IO thread exited.");
 }
 
 impl IoThread {
-  pub fn new(tx: Sender<UiThreadMessage>) -> IoThread {
+  pub fn new(tx: Sender<MatcherThreadMessage>) -> IoThread {
     IoThread{
-      tx_to_ui: tx,
+      tx_to_matcher: tx,
     }
   }
 
   pub fn run(&mut self, rx: Receiver<IoThreadMessage>) {
-    let mut it = rx.iter();
-    while let Some(task_data) = it.next() {
+    for task_data in rx.iter() {
       match task_data {
-        IoThreadMessage::AddOrderAck(id) => {},
+        IoThreadMessage::AddOrderAck(_id) => {},
         IoThreadMessage::Exit => break,
       }
     }
@@ -29,5 +26,5 @@ impl IoThread {
 }
 
 struct IoThread {
-  tx_to_ui: Sender<UiThreadMessage>,
+  tx_to_matcher: Sender<MatcherThreadMessage>,
 }
