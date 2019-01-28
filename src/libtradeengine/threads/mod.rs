@@ -1,15 +1,15 @@
-use engine::Order;
 use engine::types::*;
+use engine::Order;
 
-pub mod matcher;
 pub mod io;
+pub mod matcher;
 
 pub enum MatcherThreadMessage {
-  AddOrder(Order),
-  Exit,
+    AddOrder(Order),
+    Exit,
 }
 
 pub enum IoThreadMessage {
-  AddOrderAck(OrderIdT),
-  Exit,
+    AddOrderAck(OrderIdT),
+    Exit,
 }
