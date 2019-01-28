@@ -6,9 +6,18 @@ enum SideT {
 }
 
 enum OrderTypeT {
-  // Next 3
+  // Next 4
+
+  // Order executes now and never is put on ledger.
   MARKET = 1;
+
+  // Order executes now until ledger's price is met then
+  // gets put on ledger.
   LIMIT = 2;
+
+  // Order is only put on ledger and will be rejected if
+  // any part is executed now.
+  LIMIT_MAKER = 3;
 }
 
 message Order {
@@ -24,4 +33,13 @@ message Trade {
   // Next: 3
   Order taker = 1;
   Order maker = 2;
+}
+
+
+// External actions
+message AddOrder {
+  uint64 user = 1;
+  Order currency_pair = 2;
+
+  Order order = 3;
 }

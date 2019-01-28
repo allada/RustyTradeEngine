@@ -25,7 +25,7 @@ fn main() {
         .unwrap();
     let thread_matcher = thread::Builder::new()
         .name("Matcher".into())
-        .spawn(move || threads::matcher::start(io_tx, matcher_rx))
+        .spawn(move || threads::matcher::start("debug_debug".into(), io_tx, matcher_rx))
         .unwrap();
 
     let mut rng = rand::thread_rng();

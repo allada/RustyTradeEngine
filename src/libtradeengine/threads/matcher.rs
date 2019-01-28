@@ -1,3 +1,5 @@
+use std::string::String;
+
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
@@ -5,14 +7,19 @@ use super::*;
 use engine::Ledger;
 use engine::Order;
 
-pub fn start(tx: Sender<IoThreadMessage>, rx: Receiver<MatcherThreadMessage>) {
-    MatcherThread::new(tx).run(rx);
+pub fn start(
+    currency_pair: String,
+    tx: Sender<IoThreadMessage>,
+    rx: Receiver<MatcherThreadMessage>,
+) {
+    MatcherThread::new(currency_pair, tx).run(rx);
     println!("Matcher thread exited.");
 }
 
 impl MatcherThread {
-    pub fn new(tx: Sender<IoThreadMessage>) -> MatcherThread {
+    pub fn new(currency_pair: String, tx: Sender<IoThreadMessage>) -> MatcherThread {
         MatcherThread {
+            currency_pair,
             tx_to_io: tx,
             ledger: Ledger::default(),
         }
@@ -45,6 +52,9 @@ impl MatcherThread {
 }
 
 struct MatcherThread {
+    // Name for debugging and tracking reasons on which matcher
+    // thread this is.
+    currency_pair: String,
     tx_to_io: Sender<IoThreadMessage>,
     ledger: Ledger,
 }
