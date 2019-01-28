@@ -4,8 +4,8 @@ syntax = "proto3";
 package common;
 
 enum SideT {  // Next number: 3
-  BUY = 1,
-  SELL = 2,
+  BUY = 1;
+  SELL = 2;
 }
 
 enum OrderTypeT {  // Next number: 4
