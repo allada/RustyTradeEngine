@@ -1,14 +1,16 @@
 
 syntax = "proto3";
 
-package common;
+package proto;
 
 enum SideT {  // Next number: 3
+  INVALID = 0;
   BUY = 1;
   SELL = 2;
 }
 
 enum OrderTypeT {  // Next number: 4
+  INVALID = 0;
   // Order executes now and never is put on ledger.
   MARKET = 1;
 
@@ -37,7 +39,7 @@ message Trade {  // Next number: 3
 // External actions
 
 message AddOrder {  // Next number: 3
-  Order currency_pair = 1;
+  string currency_pair = 1;
 
   // Note: id must not be set here
   Order order = 2;
@@ -48,9 +50,19 @@ message AddOrder {  // Next number: 3
 //   uint64 id = 1;
 // }
 
-message Actions {  // Next number: 3
+message Actions {  // Next number: 4
+  string id_guid = 1;
+
   oneof action_oneof {
-    AddOrder add_order = 1;
-    // RemoveOrder remove_order = 2;
+    AddOrder add_order = 2;
+    // RemoveOrder remove_order = 3;
   }
+}
+
+// Note: this is the same as google.protobuf.any.  It was added here
+// instead of importing is because it was too difficult to get rust
+// to be happy with the output of `pb-rs`.
+message Any {  // Next number: N/A
+  string type_url = 1;
+  bytes value = 2;
 }

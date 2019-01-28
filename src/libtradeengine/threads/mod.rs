@@ -1,15 +1,16 @@
-use engine::types::*;
-use engine::Order;
+use engine;
+use std::vec::Vec;
 
 pub mod io;
 pub mod matcher;
 
 pub enum MatcherThreadMessage {
-    AddOrder(Order),
+    AddOrder(engine::Order),
     Exit,
 }
 
 pub enum IoThreadMessage {
-    AddOrderAck(OrderIdT),
+    ProcessRawData(Vec<u8>),
+    AddOrderAck(engine::OrderIdT),
     Exit,
 }

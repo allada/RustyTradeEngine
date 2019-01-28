@@ -43,7 +43,10 @@ impl MatcherThread {
                 MatcherThreadMessage::Exit => break,
             }
         }
-        println!("{}: Orders Received {}", self.currency_pair, orders_received);
+        println!(
+            "{}: Orders Received {}",
+            self.currency_pair, orders_received
+        );
     }
 
     fn handle_add_order(&mut self, order: Order) {

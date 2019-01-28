@@ -4,15 +4,11 @@ version = "0.1.0"
 authors = ["Nathan Bruer <thegreatall@gmail.com>"]
 publish = false
 
-[lib]
-name = "libtradeengine"
-path = "src/libtradeengine/lib.rs"
-tests = true
-
 [[bin]]
 name = "tradeengine"
 path = "src/main.rs"
 
 [dependencies]
-libtradeengine = {path = "src/libtradeengine"}
+libtradeengine = {path = "src/libtradeengine", test = true}
+quick-protobuf = "0.6.3"
 rand = "0.3"

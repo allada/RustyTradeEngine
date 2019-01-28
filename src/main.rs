@@ -1,12 +1,15 @@
+use std::borrow::Cow;
 use std::sync::mpsc::channel;
 use std::thread;
 
+extern crate quick_protobuf;
 extern crate tradeengine;
 
 extern crate rand;
 use self::rand::Rng;
 
-use engine::*;
+use quick_protobuf::{serialize_into_vec};
+
 use tradeengine::*;
 // use threads;
 // use threads::io;
@@ -30,16 +33,38 @@ fn main() {
 
     let mut rng = rand::thread_rng();
     for i in 0..1_000_000 {
-        let side = if rng.gen() { SideT::BUY } else { SideT::SELL };
-        thread_manager_matcher_tx
-            .send(threads::MatcherThreadMessage::AddOrder(Order::new(
-                i,
-                i % 10,
-                i % 10,
-                side,
-                OrderTypeT::LIMIT,
-            )))
-            .unwrap();
+        let side = if rng.gen() { proto::SideT::BUY } else { proto::SideT::SELL };
+        let data = proto::Actions{
+            id_guid: Some(Cow::Borrowed("blah")),
+            action_oneof: proto::mod_Actions::OneOfaction_oneof::add_order(
+                proto::AddOrder{
+                    currency_pair: Some(Cow::Borrowed("debug_debug")),
+                    order: Some(proto::Order{
+                        id: Some(i + 1),
+                        price: Some(i % 10 + 1),
+                        qty: Some(i % 10 + 1),
+                        side: Some(side),
+                        order_type: Some(proto::OrderTypeT::LIMIT),
+                    }),
+                }),
+        };
+        let serialized_order = serialize_into_vec(&data).expect("Could not write order");
+        let any_proto = proto::Any{
+            type_url: Some(Cow::Borrowed("libtradeengine.proto.Actions")),
+            value: Some(Cow::Borrowed(&serialized_order)),
+        };
+        thread_manager_io_tx.send(threads::IoThreadMessage::ProcessRawData(
+            serialize_into_vec(&any_proto).expect("Could not write order"))).unwrap();
+
+        // thread_manager_matcher_tx
+        //     .send(threads::MatcherThreadMessage::AddOrder(Order::new(
+        //         i,
+        //         i % 10,
+        //         i % 10,
+        //         side,
+        //         OrderTypeT::LIMIT,
+        //     )))
+        //     .unwrap();
     }
     println!("Done Sending");
 
