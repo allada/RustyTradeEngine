@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+
 use std::collections::binary_heap::PeekMut;
 use std::collections::BinaryHeap;
 use std::vec::Vec;
@@ -6,8 +7,63 @@ use std::vec::Vec;
 use super::types::*;
 use super::Order;
 use super::Trade;
+use engine::AddOrderResults;
+use engine::AddOrderError;
+use engine::LedgerMutation;
 
 impl Ledger {
+    pub fn add_order(&mut self, order: Order) -> AddOrderResults {
+        let mut ledger_mutations: Vec<LedgerMutation> = Vec::new();
+        let origin_order_id = *order.id();
+
+        // let mut new_maker_order: Option<Order> = None;
+        let mut maybe_order = Some(order);
+        while let Some(taker) = maybe_order.take() {
+            if *taker.id() != origin_order_id {
+                // Put remaining order that is not ours back on the ledger.
+                // Our order seems to have been fully filled.
+                ledger_mutations.push(LedgerMutation::AddedMakerOrder(taker.clone()));
+                self.stash_order(taker);
+                break;
+            }
+            let maybe_maker = self.get_matched_order(&taker);
+            if let Some(maker) = maybe_maker {
+                // Take order off tree and consume order since we found a match.
+                let (new_trade, maybe_remaining_order) = Trade::execute(taker, maker);
+                ledger_mutations.push(LedgerMutation::TradeExecuted(new_trade));
+                maybe_order = maybe_remaining_order;
+            // TODO Do something with trade.
+            } else {
+                if *taker.order_type() == OrderTypeT::MARKET {
+                    self.revert_ledger_mutations(ledger_mutations);
+                    return Err(AddOrderError::NotEnoughOrdersToFillMarketOrder);
+                }
+                // Put onto ledger, now is a maker.
+                ledger_mutations.push(LedgerMutation::AddedMakerOrder(taker.clone()));
+                self.stash_order(taker);
+                break;
+            }
+        }
+        Ok(ledger_mutations)
+    }
+
+    fn revert_ledger_mutations(&mut self, _ledger_mutations: Vec<LedgerMutation>) {
+        // let mut last_maker_price = if let Some(last_trade) = trades.last() {
+        //     *last_trade.maker().price()
+        // } else {
+        //     return;
+        // };
+        // for trade in trades {
+        //     debug_assert!(if *trade.maker().side() == SideT::SELL {
+        //         *trade.maker().price() >= last_maker_price
+        //     } else {
+        //         *trade.maker().price() <= last_maker_price
+        //     });
+        //     let mut order = *trade.maker();
+        //     self.stash_order(order);
+        // }
+    }
+
     fn stash_order(&mut self, order: Order) {
         debug_assert!(*order.order_type() != OrderTypeT::MARKET);
         if *order.side() == SideT::BUY {
@@ -34,36 +90,6 @@ impl Ledger {
         None
     }
 
-    pub fn add_order(&mut self, order: Order) -> Vec<Trade> {
-        let mut new_trades = Vec::new();
-        let origin_order_id = *order.id();
-
-        let mut maybe_order = Some(order);
-        while let Some(taker) = maybe_order.take() {
-            if *taker.id() != origin_order_id {
-                self.stash_order(taker);
-                break;
-            }
-            let maybe_maker = self.get_matched_order(&taker);
-            if let Some(maker) = maybe_maker {
-                // Take order off tree and consume order since we found a match.
-                let trade_tuple = Trade::execute(taker, maker);
-                new_trades.push(trade_tuple.0);
-                maybe_order = trade_tuple.1;
-            // TODO Do something with trade.
-            } else {
-                if *taker.order_type() == OrderTypeT::MARKET {
-                    // Ledger is empty and it's a market order, so just cancel.
-                    break;
-                }
-                // Put onto ledger, now is a maker.
-                self.stash_order(taker);
-                break;
-            }
-        }
-        new_trades
-    }
-
     #[cfg(test)]
     pub fn buy_ledger_for_test(&self) -> &BinaryHeap<Order> {
         &self.buy_ledger
@@ -79,4 +105,9 @@ impl Ledger {
 pub struct Ledger {
     buy_ledger: BinaryHeap<Order>,
     sell_ledger: BinaryHeap<Order>,
+}
+
+#[derive(Debug)]
+pub enum NewOrderError {
+    MarketOrderWithEmptyLedger,
 }

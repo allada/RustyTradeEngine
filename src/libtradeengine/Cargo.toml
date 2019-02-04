@@ -11,3 +11,4 @@ crate-type = ["rlib"]
 
 [dependencies]
 quick-protobuf = "0.6.3"
+uuid = { version = "0.7", features = ["v4"] }

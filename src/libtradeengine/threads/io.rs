@@ -1,18 +1,21 @@
+use std::borrow::Cow;
 use std::sync::mpsc::{Receiver, Sender};
 
-use quick_protobuf::{BytesReader};
+use quick_protobuf::BytesReader;
 
 use proto;
 
 use super::*;
 
-pub fn start(tx: Sender<MatcherThreadMessage>, rx: Receiver<IoThreadMessage>) {
+extern crate uuid;
+
+pub fn start(tx: Sender<MatcherThreadActionMessage>, rx: Receiver<IoThreadMessage>) {
     IoThread::new(tx).run(rx);
     println!("IO thread exited.");
 }
 
 impl IoThread {
-    pub fn new(tx: Sender<MatcherThreadMessage>) -> IoThread {
+    pub fn new(tx: Sender<MatcherThreadActionMessage>) -> IoThread {
         IoThread { tx_to_matcher: tx }
     }
 
@@ -20,8 +23,10 @@ impl IoThread {
         for task_data in rx.iter() {
             match task_data {
                 IoThreadMessage::ProcessRawData(data) => self.process_raw_data(&data),
-                IoThreadMessage::AddOrderAck(_id) => {}
-                IoThreadMessage::Exit => break,
+                IoThreadMessage::MatcherActionResult(response) => {
+                    self.process_action_result(response)
+                }
+                IoThreadMessage::Shutdown => break,
             }
         }
     }
@@ -57,14 +62,13 @@ impl IoThread {
         };
 
         let mut actions_reader = BytesReader::from_bytes(&proto_value);
-        let actions_proto =
-            match actions_reader.read_message::<proto::Actions>(&proto_value) {
-                Ok(action_proto) => action_proto,
-                Err(e) => {
-                    println!("Received bad/corrupted data: {}", e);
-                    return;
-                }
-            };
+        let actions_proto = match actions_reader.read_message::<proto::Actions>(&proto_value) {
+            Ok(action_proto) => action_proto,
+            Err(e) => {
+                println!("Received bad/corrupted data: {}", e);
+                return;
+            }
+        };
 
         use proto::mod_Actions::OneOfaction_oneof;
         match actions_proto.action_oneof {
@@ -74,13 +78,14 @@ impl IoThread {
                 println!("Unknown action");
                 return;
             }
-        }.unwrap();
+        }
+        .unwrap();
     }
 
     fn sanitize_order<'a, 'b>(order: &'a proto::Order) -> Result<engine::Order, &'b str> {
-        let id = order.id.unwrap_or(0);
-        if id == 0 {
-            return Err("'id' is invalid");
+        let customer_tag = order.customer_tag.as_ref().unwrap_or(&Cow::Borrowed(""));
+        if customer_tag.len() > 32 {
+            return Err("'customer_tag' must be <= 32 characters");
         }
         let price = order.price.unwrap_or(0);
         if price == 0 {
@@ -98,6 +103,7 @@ impl IoThread {
         if order_type == proto::OrderTypeT::INVALID {
             return Err("'order_type' is invalid");
         }
+        let id = *uuid::Uuid::new_v4().as_bytes();
         return Ok(engine::Order::new(id, price, qty, side, order_type));
     }
 
@@ -126,11 +132,19 @@ impl IoThread {
             }
         };
 
-        self.tx_to_matcher.send(MatcherThreadMessage::AddOrder(order)).unwrap();
-        return Ok(1);
+        let action_id = *uuid::Uuid::new_v4().as_bytes();
+        self.tx_to_matcher
+            .send(MatcherThreadActionMessage {
+                action_id,
+                action: engine::MatcherAction::AddOrder(order),
+            })
+            .unwrap();
+        return Ok([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
     }
+
+    fn process_action_result(&mut self, _response: MatcherActionResponse) {}
 }
 
 struct IoThread {
-    tx_to_matcher: Sender<MatcherThreadMessage>,
+    tx_to_matcher: Sender<MatcherThreadActionMessage>,
 }

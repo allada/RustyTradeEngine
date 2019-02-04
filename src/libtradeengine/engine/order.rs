@@ -2,6 +2,16 @@ use std::cmp::Ordering;
 
 use super::types::*;
 
+static mut NEXT_SEQ_ID: u64 = 1;
+
+fn get_next_seq_id() -> u64 {
+    unsafe {
+        let seq_id = NEXT_SEQ_ID;
+        NEXT_SEQ_ID += 1;
+        return seq_id;
+    }
+}
+
 impl Order {
     pub fn new(
         id: OrderIdT,
@@ -12,6 +22,7 @@ impl Order {
     ) -> Order {
         Order {
             id,
+            seq_id: get_next_seq_id(),
             price,
             qty,
             side,
@@ -22,6 +33,7 @@ impl Order {
     pub fn copy_with_new_qty(other: &Order, qty: QtyT) -> Order {
         Order {
             id: other.id,
+            seq_id: get_next_seq_id(),
             price: other.price,
             qty,
             side: other.side,
@@ -86,13 +98,14 @@ impl Ord for Order {
         if cmp != Ordering::Equal {
             return cmp;
         }
-        a.id.cmp(&b.id)
+        a.seq_id.cmp(&b.seq_id)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Order {
     id: OrderIdT,
+    seq_id: u64,
     price: PriceT,
     qty: QtyT,
     side: SideT,

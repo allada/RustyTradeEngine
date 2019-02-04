@@ -24,7 +24,7 @@ enum OrderTypeT {  // Next number: 4
 }
 
 message Order {  // Next number: 6
-  uint64 id = 1;
+  string customer_tag = 1;  // Limited to 32 characters.
   uint64 price = 2;
   uint64 qty = 3;
   SideT side = 4;
@@ -51,7 +51,7 @@ message AddOrder {  // Next number: 3
 // }
 
 message Actions {  // Next number: 4
-  string id_guid = 1;
+  bytes id_uuid = 1;
 
   oneof action_oneof {
     AddOrder add_order = 2;

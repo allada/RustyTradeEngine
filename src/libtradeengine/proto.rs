@@ -79,20 +79,20 @@ impl<'a> From<&'a str> for OrderTypeT {
 }
 
 #[derive(Debug, Default, PartialEq, Clone)]
-pub struct Order {
-    pub id: Option<u64>,
+pub struct Order<'a> {
+    pub customer_tag: Option<Cow<'a, str>>,
     pub price: Option<u64>,
     pub qty: Option<u64>,
     pub side: Option<proto::SideT>,
     pub order_type: Option<proto::OrderTypeT>,
 }
 
-impl<'a> MessageRead<'a> for Order {
+impl<'a> MessageRead<'a> for Order<'a> {
     fn from_reader(r: &mut BytesReader, bytes: &'a [u8]) -> Result<Self> {
         let mut msg = Self::default();
         while !r.is_eof() {
             match r.next_tag(bytes) {
-                Ok(8) => msg.id = Some(r.read_uint64(bytes)?),
+                Ok(10) => msg.customer_tag = Some(r.read_string(bytes).map(Cow::Borrowed)?),
                 Ok(16) => msg.price = Some(r.read_uint64(bytes)?),
                 Ok(24) => msg.qty = Some(r.read_uint64(bytes)?),
                 Ok(32) => msg.side = Some(r.read_enum(bytes)?),
@@ -105,10 +105,10 @@ impl<'a> MessageRead<'a> for Order {
     }
 }
 
-impl MessageWrite for Order {
+impl<'a> MessageWrite for Order<'a> {
     fn get_size(&self) -> usize {
         0
-        + self.id.as_ref().map_or(0, |m| 1 + sizeof_varint(*(m) as u64))
+        + self.customer_tag.as_ref().map_or(0, |m| 1 + sizeof_len((m).len()))
         + self.price.as_ref().map_or(0, |m| 1 + sizeof_varint(*(m) as u64))
         + self.qty.as_ref().map_or(0, |m| 1 + sizeof_varint(*(m) as u64))
         + self.side.as_ref().map_or(0, |m| 1 + sizeof_varint(*(m) as u64))
@@ -116,7 +116,7 @@ impl MessageWrite for Order {
     }
 
     fn write_message<W: Write>(&self, w: &mut Writer<W>) -> Result<()> {
-        if let Some(ref s) = self.id { w.write_with_tag(8, |w| w.write_uint64(*s))?; }
+        if let Some(ref s) = self.customer_tag { w.write_with_tag(10, |w| w.write_string(&**s))?; }
         if let Some(ref s) = self.price { w.write_with_tag(16, |w| w.write_uint64(*s))?; }
         if let Some(ref s) = self.qty { w.write_with_tag(24, |w| w.write_uint64(*s))?; }
         if let Some(ref s) = self.side { w.write_with_tag(32, |w| w.write_enum(*s as i32))?; }
@@ -126,12 +126,12 @@ impl MessageWrite for Order {
 }
 
 #[derive(Debug, Default, PartialEq, Clone)]
-pub struct Trade {
-    pub taker: Option<proto::Order>,
-    pub maker: Option<proto::Order>,
+pub struct Trade<'a> {
+    pub taker: Option<proto::Order<'a>>,
+    pub maker: Option<proto::Order<'a>>,
 }
 
-impl<'a> MessageRead<'a> for Trade {
+impl<'a> MessageRead<'a> for Trade<'a> {
     fn from_reader(r: &mut BytesReader, bytes: &'a [u8]) -> Result<Self> {
         let mut msg = Self::default();
         while !r.is_eof() {
@@ -146,7 +146,7 @@ impl<'a> MessageRead<'a> for Trade {
     }
 }
 
-impl MessageWrite for Trade {
+impl<'a> MessageWrite for Trade<'a> {
     fn get_size(&self) -> usize {
         0
         + self.taker.as_ref().map_or(0, |m| 1 + sizeof_len((m).get_size()))
@@ -163,7 +163,7 @@ impl MessageWrite for Trade {
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct AddOrder<'a> {
     pub currency_pair: Option<Cow<'a, str>>,
-    pub order: Option<proto::Order>,
+    pub order: Option<proto::Order<'a>>,
 }
 
 impl<'a> MessageRead<'a> for AddOrder<'a> {
@@ -197,7 +197,7 @@ impl<'a> MessageWrite for AddOrder<'a> {
 
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct Actions<'a> {
-    pub id_guid: Option<Cow<'a, str>>,
+    pub id_uuid: Option<Cow<'a, [u8]>>,
     pub action_oneof: proto::mod_Actions::OneOfaction_oneof<'a>,
 }
 
@@ -206,7 +206,7 @@ impl<'a> MessageRead<'a> for Actions<'a> {
         let mut msg = Self::default();
         while !r.is_eof() {
             match r.next_tag(bytes) {
-                Ok(10) => msg.id_guid = Some(r.read_string(bytes).map(Cow::Borrowed)?),
+                Ok(10) => msg.id_uuid = Some(r.read_bytes(bytes).map(Cow::Borrowed)?),
                 Ok(18) => msg.action_oneof = proto::mod_Actions::OneOfaction_oneof::add_order(r.read_message::<proto::AddOrder>(bytes)?),
                 Ok(t) => { r.read_unknown(bytes, t)?; }
                 Err(e) => return Err(e),
@@ -219,14 +219,14 @@ impl<'a> MessageRead<'a> for Actions<'a> {
 impl<'a> MessageWrite for Actions<'a> {
     fn get_size(&self) -> usize {
         0
-        + self.id_guid.as_ref().map_or(0, |m| 1 + sizeof_len((m).len()))
+        + self.id_uuid.as_ref().map_or(0, |m| 1 + sizeof_len((m).len()))
         + match self.action_oneof {
             proto::mod_Actions::OneOfaction_oneof::add_order(ref m) => 1 + sizeof_len((m).get_size()),
             proto::mod_Actions::OneOfaction_oneof::None => 0,
     }    }
 
     fn write_message<W: Write>(&self, w: &mut Writer<W>) -> Result<()> {
-        if let Some(ref s) = self.id_guid { w.write_with_tag(10, |w| w.write_string(&**s))?; }
+        if let Some(ref s) = self.id_uuid { w.write_with_tag(10, |w| w.write_bytes(&**s))?; }
         match self.action_oneof {            proto::mod_Actions::OneOfaction_oneof::add_order(ref m) => { w.write_with_tag(18, |w| w.write_message(m))? },
             proto::mod_Actions::OneOfaction_oneof::None => {},
     }        Ok(())

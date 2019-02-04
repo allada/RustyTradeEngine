@@ -1,4 +1,7 @@
-pub type OrderIdT = u64;
+
+extern crate uuid;
+
+pub type OrderIdT = uuid::Bytes;
 pub type PriceT = u64;
 pub type QtyT = u64;
 

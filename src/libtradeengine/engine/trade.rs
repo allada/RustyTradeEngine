@@ -23,14 +23,17 @@ impl Trade {
         (Trade { taker, maker }, new_order)
     }
 
-    #[cfg(test)]
     pub fn taker(&self) -> &Order {
         &self.taker
     }
 
-    #[cfg(test)]
     pub fn maker(&self) -> &Order {
         &self.maker
+    }
+
+    #[cfg(test)]
+    pub fn new(taker: Order, maker: Order) -> Trade {
+        Trade { taker, maker }
     }
 
     #[cfg(test)]
