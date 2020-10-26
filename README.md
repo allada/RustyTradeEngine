@@ -1,9 +1,9 @@
 # Rusty Trade Engine
 
 ## About the project
-The overall goal of this project is for an extremely fast, efficient and
+The overall goal of this project is for an extremely fast, efficient, and
 stable trade/matching engine.  Rust was chosen in the hope that it would
-reduce risk of exploits, increase stability and because I wanted to learn
+reduce risk of exploits, increase stability, and because I wanted to learn
 rust.
 
 The primary use cases for this project are:
@@ -12,8 +12,8 @@ The primary use cases for this project are:
 
 ## Status
 Currently the project is in the `proof` stage.  I would not recommend
-to use this code in production unless you are prepared to put a lot
-of work into it, however this project would be a great starting point
+using this code in production unless you are prepared to put a lot
+of work into it. However, this project would be a great starting point
 if your project overlaps.
 
 ## Install / Setup
@@ -22,7 +22,7 @@ if your project overlaps.
 3) ???
 4) PROFIT!!!
 
-## Licence
+## License
 Copyright 2018-2019 Nathan (Blaise) Bruer
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
